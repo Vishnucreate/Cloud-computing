@@ -19,7 +19,7 @@ public class ObjectDetection {
 
     private static final String BUCKET_NAME = "njit-cs-643";
     private static final String QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/323052225972/sqsforcarimage";
-    private static final Region REGION = Region.US_EAST_1; // Specify region
+    private static final Region REGION = Region.of("us-east-1b"); // Specify region
 
     public static void main(String[] args) {
         // Set up S3, Rekognition, and SQS clients
