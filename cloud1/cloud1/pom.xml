@@ -84,7 +84,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.aws.InstanceA.ObjectDetection</mainClass> <!-- Update this to your main class -->
+                            <mainClass>com.example.cloud1.ObjectDetection</mainClass> <!-- Update this to your main class -->
                         </manifest>
                     </archive>
                 </configuration>
