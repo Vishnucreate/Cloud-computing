@@ -1,18 +1,17 @@
 package com.example.cloud1;
 
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rekognition.RekognitionClient;
 import software.amazon.awssdk.services.rekognition.model.DetectLabelsRequest;
 import software.amazon.awssdk.services.rekognition.model.DetectLabelsResponse;
 import software.amazon.awssdk.services.rekognition.model.Image;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
-import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
 import java.util.List;
 
@@ -20,18 +19,22 @@ public class ObjectDetection {
 
     private static final String BUCKET_NAME = "njit-cs-643";
     private static final String QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/323052225972/sqsforcarimage";
+    private static final Region REGION = Region.US_EAST_1; // Specify region
 
     public static void main(String[] args) {
-        // Use InstanceProfileCredentialsProvider for EC2 instance credentials
+        // Set up S3, Rekognition, and SQS clients
         S3Client s3Client = S3Client.builder()
+                .region(REGION) // Set region explicitly
                 .credentialsProvider(InstanceProfileCredentialsProvider.create())
                 .build();
 
         RekognitionClient rekognitionClient = RekognitionClient.builder()
+                .region(REGION) // Set region explicitly
                 .credentialsProvider(InstanceProfileCredentialsProvider.create())
                 .build();
 
         SqsClient sqsClient = SqsClient.builder()
+                .region(REGION) // Set region explicitly
                 .credentialsProvider(InstanceProfileCredentialsProvider.create())
                 .build();
 
@@ -42,10 +45,11 @@ public class ObjectDetection {
         ListObjectsV2Response listObjectsResponse = s3Client.listObjectsV2(listObjectsRequest);
 
         List<S3Object> images = listObjectsResponse.contents();
+
         for (S3Object image : images) {
             String imageKey = image.key();
 
-            // Call Rekognition for object detection
+            // Detect objects in the image using Rekognition
             DetectLabelsRequest detectLabelsRequest = DetectLabelsRequest.builder()
                     .image(Image.builder()
                             .s3Object(software.amazon.awssdk.services.rekognition.model.S3Object.builder()
@@ -66,21 +70,21 @@ public class ObjectDetection {
             if (carDetected) {
                 System.out.println("Car detected in image: " + imageKey);
 
-                // Send message to SQS
+                // Send message to SQS with image key
                 SendMessageRequest sendMessageRequest = SendMessageRequest.builder()
                         .queueUrl(QUEUE_URL)
                         .messageBody(imageKey)
                         .build();
 
-                SendMessageResponse sendMessageResponse = sqsClient.sendMessage(sendMessageRequest);
+                sqsClient.sendMessage(sendMessageRequest);
                 System.out.println("Message sent to SQS for image: " + imageKey);
             }
         }
 
-        // Signal to Instance B that the processing is done
+        // Send termination signal to SQS
         SendMessageRequest terminateMessageRequest = SendMessageRequest.builder()
                 .queueUrl(QUEUE_URL)
-                .messageBody("-1")  // Signal to Instance B
+                .messageBody("-1") // Termination signal
                 .build();
 
         sqsClient.sendMessage(terminateMessageRequest);
