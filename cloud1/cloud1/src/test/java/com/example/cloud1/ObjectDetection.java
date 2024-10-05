@@ -1,7 +1,6 @@
-import java.io.InputStream;
-import java.util.List;
+package com.example.cloud1;
 
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.services.rekognition.RekognitionClient;
 import software.amazon.awssdk.services.rekognition.model.DetectLabelsRequest;
 import software.amazon.awssdk.services.rekognition.model.DetectLabelsResponse;
@@ -15,33 +14,45 @@ import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
+import java.util.List;
+
 public class ObjectDetection {
 
     private static final String BUCKET_NAME = "njit-cs-643";
     private static final String QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/323052225972/sqsforcarimage";
 
     public static void main(String[] args) {
-        S3Client s3Client = S3Client.builder().credentialsProvider(ProfileCredentialsProvider.create()).build();
-        RekognitionClient rekognitionClient = RekognitionClient.builder().credentialsProvider(ProfileCredentialsProvider.create()).build();
-        SqsClient sqsClient = SqsClient.builder().credentialsProvider(ProfileCredentialsProvider.create()).build();
+        // Use InstanceProfileCredentialsProvider for EC2 instance credentials
+        S3Client s3Client = S3Client.builder()
+                .credentialsProvider(InstanceProfileCredentialsProvider.create())
+                .build();
+
+        RekognitionClient rekognitionClient = RekognitionClient.builder()
+                .credentialsProvider(InstanceProfileCredentialsProvider.create())
+                .build();
+
+        SqsClient sqsClient = SqsClient.builder()
+                .credentialsProvider(InstanceProfileCredentialsProvider.create())
+                .build();
 
         // List images in the S3 bucket
-        ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder().bucket(BUCKET_NAME).build();
+        ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder()
+                .bucket(BUCKET_NAME)
+                .build();
         ListObjectsV2Response listObjectsResponse = s3Client.listObjectsV2(listObjectsRequest);
 
         List<S3Object> images = listObjectsResponse.contents();
-        int index = 0;
-
         for (S3Object image : images) {
             String imageKey = image.key();
 
-            // Get image from S3
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(BUCKET_NAME).key(imageKey).build();
-            InputStream imageStream = s3Client.getObject(getObjectRequest);
-
             // Call Rekognition for object detection
             DetectLabelsRequest detectLabelsRequest = DetectLabelsRequest.builder()
-                    .image(Image.builder().s3Object(software.amazon.awssdk.services.rekognition.model.S3Object.builder().bucket(BUCKET_NAME).name(imageKey).build()).build())
+                    .image(Image.builder()
+                            .s3Object(software.amazon.awssdk.services.rekognition.model.S3Object.builder()
+                                    .bucket(BUCKET_NAME)
+                                    .name(imageKey)
+                                    .build())
+                            .build())
                     .maxLabels(10)
                     .minConfidence(90F)
                     .build();
@@ -64,8 +75,6 @@ public class ObjectDetection {
                 SendMessageResponse sendMessageResponse = sqsClient.sendMessage(sendMessageRequest);
                 System.out.println("Message sent to SQS for image: " + imageKey);
             }
-
-            index++;
         }
 
         // Signal to Instance B that the processing is done
