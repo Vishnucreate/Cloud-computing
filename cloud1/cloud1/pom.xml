@@ -42,23 +42,28 @@
             <version>1.2</version>
         </dependency>
 
-        <!-- SLF4J for Logging -->
+        <!-- SLF4J for Logging (you can keep this or remove based on your logging needs) -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.36</version> <!-- Latest SLF4J version -->
         </dependency>
+        
+        <!-- Remove slf4j-nop if it's conflicting with commons-logging -->
+        <!-- You can remove the following dependency if not required -->
+        <!--
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-nop</artifactId>
-            <version>1.7.36</version> <!-- Latest SLF4J version -->
+            <version>1.7.36</version>
         </dependency>
+        -->
 
         <!-- Apache HTTP Client (used by AWS SDK) -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.14</version> <!-- Latest version -->
+            <version>4.5.14</version>
         </dependency>
     </dependencies>
 
