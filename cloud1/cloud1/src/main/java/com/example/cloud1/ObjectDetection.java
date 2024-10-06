@@ -44,7 +44,7 @@ public class ObjectDetection {
 
             // Call Rekognition for object detection
             DetectLabelsRequest detectLabelsRequest = DetectLabelsRequest.builder()
-                    .image(Image.builder().s3Object(software.amazon.awssdk.services.rekognition.model.S3Object.builder().region(REGION).bucket(BUCKET_NAME).name(imageKey).build()).build())
+                    .image(Image.builder().s3Object(software.amazon.awssdk.services.rekognition.model.S3Object.builder().bucket(BUCKET_NAME).name(imageKey).build()).build())
                     .maxLabels(10)
                     .minConfidence(90F)
                     .build();
