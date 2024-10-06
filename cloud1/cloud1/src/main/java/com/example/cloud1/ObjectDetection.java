@@ -26,7 +26,7 @@ public class ObjectDetection {
     public static void main(String[] args) {
         S3Client s3Client = S3Client.builder().credentialsProvider(ProfileCredentialsProvider.create()).build();
         RekognitionClient rekognitionClient = RekognitionClient.builder().credentialsProvider(ProfileCredentialsProvider.create()).build();
-        SqsClient sqsClient = SqsClient.builder().credentialsProvider(ProfileCredentialsProvider.create()).build();
+         SqsClient sqsClient = SqsClient.builder().region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
 
         // List images in the S3 bucket
         ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder().bucket(BUCKET_NAME).build();
