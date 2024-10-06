@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 
 public class ObjectDetection {
 
@@ -25,9 +26,9 @@ public class ObjectDetection {
     private static final Region REGION = Region.of("us-east-1b");
 
     public static void main(String[] args) {
-        S3Client s3Client = S3Client.builder().httpClient(SdkHttpClient).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
-        RekognitionClient rekognitionClient = RekognitionClient.builder().httpClient(SdkHttpClient).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
-         SqsClient sqsClient = SqsClient.builder().httpClient(SdkHttpClient).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
+        S3Client s3Client = S3Client.builder().httpClient(ApacheHttpClient.create()).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
+        RekognitionClient rekognitionClient = RekognitionClient.builder().httpClient(ApacheHttpClient.create()).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
+         SqsClient sqsClient = SqsClient.builder().httpClient(ApacheHttpClient.create()).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
 
         // List images in the S3 bucket
         ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder().bucket(BUCKET_NAME).build();
