@@ -25,7 +25,7 @@ public class ObjectDetection {
     private static final String BUCKET_NAME = "njit-cs-643";
     private static final String QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/323052225972/sqsforcarimage";
     private static final Region REGION = Region.of("us-east-1b");
-     SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+    private final SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
     public static void main(String[] args) {
         S3Client s3Client = S3Client.builder().httpClient(httpClient).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
