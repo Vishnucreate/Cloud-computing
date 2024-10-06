@@ -26,6 +26,7 @@ public class ObjectDetection {
     private static final String QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/323052225972/sqsforcarimage";
     private static final Region REGION = Region.of("us-east-1b");
     private static final SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+    public static final X509HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER = AllowAllHostnameVerifier.INSTANCE;
 
     public static void main(String[] args) {
         S3Client s3Client = S3Client.builder().httpClient(httpClient).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
