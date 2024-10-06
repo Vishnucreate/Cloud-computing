@@ -2,7 +2,7 @@ package com.example.cloud1;
 
 import java.io.InputStream;
 import java.util.List;
-
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.services.rekognition.RekognitionClient;
 import software.amazon.awssdk.services.rekognition.model.DetectLabelsRequest;
@@ -21,7 +21,7 @@ public class ObjectDetection {
 
     private static final String BUCKET_NAME = "njit-cs-643";
     private static final String QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/323052225972/sqsforcarimage";
-    private static final String REGION = Region.of("us-east-1b");
+    private static final Region REGION = Region.of("us-east-1b");
 
     public static void main(String[] args) {
         S3Client s3Client = S3Client.builder().credentialsProvider(ProfileCredentialsProvider.create()).build();
