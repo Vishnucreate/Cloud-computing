@@ -39,7 +39,7 @@ public class ObjectDetection {
             String imageKey = image.key();
 
             // Get image from S3
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder().region(REGION).bucket(BUCKET_NAME).key(imageKey).build();
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(BUCKET_NAME).key(imageKey).build();
             InputStream imageStream = s3Client.getObject(getObjectRequest);
 
             // Call Rekognition for object detection
