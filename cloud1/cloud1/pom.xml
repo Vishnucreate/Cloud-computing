@@ -30,7 +30,12 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sqs</artifactId>
             <version>2.20.140</version>
-        </dependency>             
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>apache-client</artifactId>
+            <version>2.20.140</version>
+        </dependency>      
 
         <!-- AWS SDK for Rekognition -->
         <dependency>
