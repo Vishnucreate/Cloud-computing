@@ -1,5 +1,7 @@
 package com.example.cloud1;
 
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import java.io.InputStream;
 import java.util.List;
