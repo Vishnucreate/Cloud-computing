@@ -1,5 +1,6 @@
 package com.example.cloud1;
 
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import java.io.InputStream;
 import java.util.List;
 import software.amazon.awssdk.regions.Region;
