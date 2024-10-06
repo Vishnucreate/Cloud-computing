@@ -24,11 +24,12 @@ public class ObjectDetection {
     private static final String BUCKET_NAME = "njit-cs-643";
     private static final String QUEUE_URL = "https://sqs.us-east-1.amazonaws.com/323052225972/sqsforcarimage";
     private static final Region REGION = Region.of("us-east-1b");
+     SdkHttpClient httpClient = ApacheHttpClient.builder().build();
 
     public static void main(String[] args) {
-        S3Client s3Client = S3Client.builder().httpClient(ApacheHttpClient.create()).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
-        RekognitionClient rekognitionClient = RekognitionClient.builder().httpClient(ApacheHttpClient.create()).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
-         SqsClient sqsClient = SqsClient.builder().httpClient(ApacheHttpClient.create()).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
+        S3Client s3Client = S3Client.builder().httpClient(httpClient).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
+        RekognitionClient rekognitionClient = RekognitionClient.builder().httpClient(httpClient).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
+         SqsClient sqsClient = SqsClient.builder().httpClient(httpClient).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
 
         // List images in the S3 bucket
         ListObjectsV2Request listObjectsRequest = ListObjectsV2Request.builder().bucket(BUCKET_NAME).build();
