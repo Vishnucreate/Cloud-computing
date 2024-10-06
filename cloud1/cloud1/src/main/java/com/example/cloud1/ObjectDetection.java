@@ -24,8 +24,8 @@ public class ObjectDetection {
     private static final Region REGION = Region.of("us-east-1b");
 
     public static void main(String[] args) {
-        S3Client s3Client = S3Client.builder().credentialsProvider(ProfileCredentialsProvider.create()).build();
-        RekognitionClient rekognitionClient = RekognitionClient.builder().credentialsProvider(ProfileCredentialsProvider.create()).build();
+        S3Client s3Client = S3Client.builder().region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
+        RekognitionClient rekognitionClient = RekognitionClient.builder().region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
          SqsClient sqsClient = SqsClient.builder().region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
 
         // List images in the S3 bucket
@@ -39,12 +39,12 @@ public class ObjectDetection {
             String imageKey = image.key();
 
             // Get image from S3
-            GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(BUCKET_NAME).key(imageKey).build();
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder().region(REGION).bucket(BUCKET_NAME).key(imageKey).build();
             InputStream imageStream = s3Client.getObject(getObjectRequest);
 
             // Call Rekognition for object detection
             DetectLabelsRequest detectLabelsRequest = DetectLabelsRequest.builder()
-                    .image(Image.builder().s3Object(software.amazon.awssdk.services.rekognition.model.S3Object.builder().bucket(BUCKET_NAME).name(imageKey).build()).build())
+                    .image(Image.builder().s3Object(software.amazon.awssdk.services.rekognition.model.S3Object.builder().region(REGION).bucket(BUCKET_NAME).name(imageKey).build()).build())
                     .maxLabels(10)
                     .minConfidence(90F)
                     .build();
