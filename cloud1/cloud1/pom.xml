@@ -59,8 +59,13 @@
         <!-- Apache HTTP Client (used by AWS SDK) -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient5</artifactId>
-            <version>5.2.1</version>
+             <version>3.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+    </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
