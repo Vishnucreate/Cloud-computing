@@ -17,24 +17,20 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>2.20.140</version>
-        </dependency>
+            <version>2.20.140</version>        </dependency>
 
         <!-- AWS SDK for SQS -->
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>netty-nio-client</artifactId>
-            <version>2.20.140</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sqs</artifactId>
-            <version>2.20.140</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
-            <version>2.20.140</version>
         </dependency>      
 
         <!-- AWS SDK for Rekognition -->
