@@ -29,7 +29,7 @@ public class ObjectDetection {
     private static final Region REGION = Region.of("us-east-1b");
     private static final SdkHttpClient httpClient = ApacheHttpClient.builder().build();
     @SuppressWarnings("deprecation")
-    public static final X509HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER = AllowAllHostnameVerifier.INSTANCE;
+    public static final X509HostnameVerifier ALLOW_ALL_HOSTNAME_VERIFIER = AllowAllHostnameVerifier;
 
     public static void main(String[] args) {
         S3Client s3Client = S3Client.builder().httpClient(httpClient).region(REGION).credentialsProvider(ProfileCredentialsProvider.create()).build();
