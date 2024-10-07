@@ -23,14 +23,20 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>netty-nio-client</artifactId>
+            <version>2.0.0-preview-9</version>
+            <scope>test</scope>                 
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>sqs</artifactId>
+            <version>2.0.0-preview-9</version>
+            <scope>test</scope>                 
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
+            <version>2.0.0-preview-9</version>
+            <scope>test</scope>
         </dependency>      
 
         <!-- AWS SDK for Rekognition -->
