@@ -87,7 +87,7 @@
                         </descriptorRefs>
                         <archive>
                           <manifest>
-                            <mainClass></mainClass>
+                            <mainClass>com.example.cloud1.ObjectDetection</mainClass>
                           </manifest>
                         </archive>
                       </configuration>
