@@ -22,6 +22,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.rekognition.AmazonRekognition;
 import com.amazonaws.services.rekognition.AmazonRekognitionClientBuilder;
@@ -52,7 +53,7 @@ public class AWSObjectRekognition {
                     .withCredentials(new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials()))
                     .build();
 
-            // Create a new connection factory with all defaults (credentials and region)
+            // Create a new connection factory with explicit credentials to avoid expired token issues
             SQSConnectionFactory connectionFactory = new SQSConnectionFactory(new ProviderConfiguration(),
                     AmazonSQSClientBuilder.standard()
                             .withRegion(clientRegion)
