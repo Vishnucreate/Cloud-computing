@@ -12,8 +12,6 @@ import javax.jms.Queue;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.springframework.boot.SpringApplication;
-
 import com.amazon.sqs.javamessaging.AmazonSQSMessagingClientWrapper;
 import com.amazon.sqs.javamessaging.ProviderConfiguration;
 import com.amazon.sqs.javamessaging.SQSConnection;
@@ -41,33 +39,33 @@ import com.amazonaws.services.sqs.model.CreateQueueRequest;
 
 public class AWSObjectRekognition {
 
-    public static void main(String[] args) throws IOException, JMSException, InterruptedException {
-        SpringApplication.run(AWSObjectRekognition.class, args);
-
+    public static void main(String[] args) throws IOException, JMSException {
         Regions clientRegion = Regions.US_EAST_1;
         String bucketName = "njit-cs-643";
         String queueName = "sqsforcarimage.fifo";
 
         try {
+            // Create S3 Client
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
                     .withRegion(clientRegion)
                     .withCredentials(new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials()))
                     .build();
 
-            // Create a new connection factory with explicit credentials
-            SQSConnectionFactory connectionFactory = new SQSConnectionFactory(new ProviderConfiguration(),
+            // Create the SQSConnectionFactory
+            SQSConnectionFactory connectionFactory = new SQSConnectionFactory(
+                    new ProviderConfiguration(),
                     AmazonSQSClientBuilder.standard()
                             .withRegion(clientRegion)
                             .withCredentials(new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials()))
-                            .build());
+            );
 
-            // Create the connection
+            // Establish the SQS connection
             SQSConnection connection = connectionFactory.createConnection();
 
-            // Get the wrapped SQS client
+            // Get the wrapped Amazon SQS client
             AmazonSQSMessagingClientWrapper client = connection.getWrappedAmazonSQSClient();
 
-            // Check if the queue exists, and create it if it does not
+            // Create the SQS FIFO queue if it doesn't exist
             if (!client.queueExists(queueName)) {
                 Map<String, String> attributes = new HashMap<>();
                 attributes.put("FifoQueue", "true");
@@ -75,15 +73,14 @@ public class AWSObjectRekognition {
                 client.createQueue(new CreateQueueRequest().withQueueName(queueName).withAttributes(attributes));
             }
 
-            // Create a nontransacted session with AUTO_ACKNOWLEDGE mode
+            // Create a non-transacted session with AUTO_ACKNOWLEDGE mode
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            // Create a queue identity with the specific queue name
+            // Create a queue identity and specify the queue name to the session
             Queue queue = session.createQueue(queueName);
 
-            // Create a message producer for the specified queue
+            // Create a producer for the 'sqsforcarimage.fifo' queue
             MessageProducer producer = session.createProducer(queue);
-            System.out.println("Listing objects...");
 
             // List objects in the S3 bucket
             ListObjectsV2Request req = new ListObjectsV2Request().withBucketName(bucketName);
@@ -92,24 +89,31 @@ public class AWSObjectRekognition {
                 result = s3Client.listObjectsV2(req);
                 for (S3ObjectSummary objectSummary : result.getObjectSummaries()) {
                     String photo = objectSummary.getKey();
+
+                    // Create Rekognition client
                     AmazonRekognition rekognitionClient = AmazonRekognitionClientBuilder.standard()
                             .withRegion(clientRegion)
                             .withCredentials(new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials()))
                             .build();
 
+                    // Prepare request to detect labels in the image
                     DetectLabelsRequest detectLabelsRequest = new DetectLabelsRequest()
                             .withImage(new Image().withS3Object(new S3Object().withName(photo).withBucket(bucketName)))
-                            .withMaxLabels(10).withMinConfidence(75F);
+                            .withMaxLabels(10)
+                            .withMinConfidence(75F);
+
                     try {
+                        // Detect labels in the image
                         DetectLabelsResult detectLabelsResult = rekognitionClient.detectLabels(detectLabelsRequest);
                         List<Label> labels = detectLabelsResult.getLabels();
 
                         for (Label label : labels) {
                             if ("Car".equals(label.getName()) && label.getConfidence() > 90) {
-                                System.out.print("Detected labels for:  " + photo + " => ");
+                                System.out.print("Detected labels for: " + photo + " => ");
                                 System.out.print("Label: " + label.getName() + ", ");
                                 System.out.println("Confidence: " + label.getConfidence());
 
+                                // Send message to SQS
                                 TextMessage message = session.createTextMessage(objectSummary.getKey());
                                 message.setStringProperty("JMSXGroupID", "Default");
                                 producer.send(message);
@@ -125,6 +129,7 @@ public class AWSObjectRekognition {
                 req.setContinuationToken(result.getNextContinuationToken());
             } while (result.isTruncated());
 
+            // Close the connection
             connection.close();
         } catch (AmazonServiceException e) {
             e.printStackTrace();
