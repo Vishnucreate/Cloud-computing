@@ -22,7 +22,6 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.rekognition.AmazonRekognition;
 import com.amazonaws.services.rekognition.AmazonRekognitionClientBuilder;
@@ -41,11 +40,13 @@ import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 
 public class AWSObjectRekognition {
+
     public static void main(String[] args) throws IOException, JMSException, InterruptedException {
         SpringApplication.run(AWSObjectRekognition.class, args);
 
         Regions clientRegion = Regions.US_EAST_1;
         String bucketName = "njit-cs-643";
+        String queueName = "sqsforcarimage.fifo";
 
         try {
             AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
@@ -53,39 +54,38 @@ public class AWSObjectRekognition {
                     .withCredentials(new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials()))
                     .build();
 
-            // Create a new connection factory with explicit credentials to avoid expired token issues
+            // Create a new connection factory with explicit credentials
             SQSConnectionFactory connectionFactory = new SQSConnectionFactory(new ProviderConfiguration(),
                     AmazonSQSClientBuilder.standard()
                             .withRegion(clientRegion)
                             .withCredentials(new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials()))
                             .build());
 
-            // Create the connection.
+            // Create the connection
             SQSConnection connection = connectionFactory.createConnection();
 
-            // Get the wrapped client
+            // Get the wrapped SQS client
             AmazonSQSMessagingClientWrapper client = connection.getWrappedAmazonSQSClient();
 
-            // Create an Amazon SQS FIFO queue named MyQueue.fifo, if it doesn't already exist
-            if (!client.queueExists("MyQueue.fifo")) {
-                Map<String, String> attributes = new HashMap<String, String>();
+            // Check if the queue exists, and create it if it does not
+            if (!client.queueExists(queueName)) {
+                Map<String, String> attributes = new HashMap<>();
                 attributes.put("FifoQueue", "true");
                 attributes.put("ContentBasedDeduplication", "true");
-                client.createQueue(new CreateQueueRequest().withQueueName("MyQueue.fifo").withAttributes(attributes));
+                client.createQueue(new CreateQueueRequest().withQueueName(queueName).withAttributes(attributes));
             }
 
-            // Create the nontransacted session with AUTO_ACKNOWLEDGE mode
+            // Create a nontransacted session with AUTO_ACKNOWLEDGE mode
             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
-            // Create a queue identity and specify the queue name to the session
-            Queue queue = session.createQueue("MyQueue.fifo");
+            // Create a queue identity with the specific queue name
+            Queue queue = session.createQueue(queueName);
 
-            // Create a producer for the 'MyQueue'
+            // Create a message producer for the specified queue
             MessageProducer producer = session.createProducer(queue);
             System.out.println("Listing objects...");
 
-            // maxKeys is set to 2 to demonstrate the use of
-            // ListObjectsV2Result.getNextContinuationToken()
+            // List objects in the S3 bucket
             ListObjectsV2Request req = new ListObjectsV2Request().withBucketName(bucketName);
             ListObjectsV2Result result;
             do {
@@ -97,38 +97,35 @@ public class AWSObjectRekognition {
                             .withCredentials(new AWSStaticCredentialsProvider(new ProfileCredentialsProvider().getCredentials()))
                             .build();
 
-                    DetectLabelsRequest request = new DetectLabelsRequest()
+                    DetectLabelsRequest detectLabelsRequest = new DetectLabelsRequest()
                             .withImage(new Image().withS3Object(new S3Object().withName(photo).withBucket(bucketName)))
                             .withMaxLabels(10).withMinConfidence(75F);
                     try {
-                        DetectLabelsResult result1 = rekognitionClient.detectLabels(request);
-                        List<Label> labels = result1.getLabels();
+                        DetectLabelsResult detectLabelsResult = rekognitionClient.detectLabels(detectLabelsRequest);
+                        List<Label> labels = detectLabelsResult.getLabels();
 
-                        Hashtable<String, Integer> numbers = new Hashtable<String, Integer>();
                         for (Label label : labels) {
-                            if (label.getName().equals("Car") & label.getConfidence() > 90) {
+                            if ("Car".equals(label.getName()) && label.getConfidence() > 90) {
                                 System.out.print("Detected labels for:  " + photo + " => ");
-                                numbers.put(label.getName(), Math.round(label.getConfidence()));
-                                System.out.print("Label: " + label.getName() + " ,");
-                                System.out.print("Confidence: " + label.getConfidence().toString() + "\n");
-                                System.out.println("Pushed to SQS.");
+                                System.out.print("Label: " + label.getName() + ", ");
+                                System.out.println("Confidence: " + label.getConfidence());
+
                                 TextMessage message = session.createTextMessage(objectSummary.getKey());
                                 message.setStringProperty("JMSXGroupID", "Default");
                                 producer.send(message);
-                                System.out.println("JMS Message " + message.getJMSMessageID());
-                                System.out.println("JMS Message Sequence Number "
-                                        + message.getStringProperty("JMS_SQS_SequenceNumber"));
 
+                                System.out.println("Pushed to SQS with JMS Message ID: " + message.getJMSMessageID());
+                                System.out.println("JMS Message Sequence Number: " + message.getStringProperty("JMS_SQS_SequenceNumber"));
                             }
                         }
-
                     } catch (AmazonRekognitionException e) {
                         e.printStackTrace();
                     }
                 }
-                String token = result.getNextContinuationToken();
-                req.setContinuationToken(token);
+                req.setContinuationToken(result.getNextContinuationToken());
             } while (result.isTruncated());
+
+            connection.close();
         } catch (AmazonServiceException e) {
             e.printStackTrace();
         } catch (SdkClientException e) {
