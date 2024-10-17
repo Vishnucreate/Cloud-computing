@@ -37,12 +37,12 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 
-public class AWSObjectRekognition {
+public class ObjectDetection {
 
     public static void main(String[] args) throws IOException, JMSException {
         Regions clientRegion = Regions.US_EAST_1;
         String bucketName = "njit-cs-643";
-        String queueName = "sqsforcarimage.fifo";
+        String queueName = "MyQueue.fifo";
 
         try {
             // Create S3 Client
